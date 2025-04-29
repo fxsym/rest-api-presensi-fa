@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Presence;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\PresenceResource;
 
@@ -14,9 +16,18 @@ class PresenceController extends Controller
      */
     public function index()
     {
-        // Ambil semua data presensi dengan relasi user
-        // Tambahin cek role, kalo admin ambil semua presences, kalo member ambil presences berdasarkan id user
-        $presences = Presence::with('user')->get();
+        // Gate::authorize('viewAny', Presence::class);
+        $user = Auth::user();
+        
+        if ($user->role === 'admin') {
+            $presences = Presence::with('user')->get(); // Admin
+        } elseif ($user->role === 'member') {
+            $presences = Presence::with('user')->where('user_id', $user->id)->get(); // Member
+        } else {
+            return response()->json([
+                'message' => 'Upss... i dont know what you role it is..'
+            ], 403);
+        }
 
         return response()->json([
             'message' => 'Presences retrieved successfully',
@@ -68,6 +79,7 @@ class PresenceController extends Controller
      */
     public function show(Presence $presence)
     {
+        Gate::authorize('view', $presence);
         $presence->load('user');
 
         return response()->json([
@@ -89,12 +101,12 @@ class PresenceController extends Controller
      */
     public function update(Request $request, Presence $presence)
     {
+        Gate::authorize('update', $presence);
         $validated = $request->validate([
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'lab' => 'nullable|string',
             'status' => 'nullable|string|max:20',
-            'note' => 'nullable|string',
-            'user_id' => 'nullable|exists:users,id',
+            'note' => 'nullable|string'
         ]);
 
         // Simpan gambar baru jika ada
@@ -113,8 +125,7 @@ class PresenceController extends Controller
         $presence->update([
             'lab' => $validated['lab'] ?? $presence->lab,
             'status' => $validated['status'] ?? $presence->status,
-            'note' => $validated['note'] ?? $presence->note,
-            'user_id' => $validated['user_id'] ?? $presence->user_id,
+            'note' => $validated['note'] ?? $presence->note
         ]);
 
         return response()->json([
@@ -128,6 +139,7 @@ class PresenceController extends Controller
      */
     public function destroy(Presence $presence)
     {
+        Gate::authorize('delete', $presence);
         // Hapus gambar dari penyimpanan jika ada
         if ($presence->image) {
             Storage::disk('public')->delete($presence->image);

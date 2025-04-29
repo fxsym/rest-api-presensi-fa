@@ -14,8 +14,7 @@ Route::patch('/user/{id}', [UserController::class, 'update']);
 Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
 // Route for presence
-Route::apiResource('presence', PresenceController::class);
-
+Route::apiResource('presence', PresenceController::class)->middleware('auth:sanctum');
 
 Route::prefix('auth')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);

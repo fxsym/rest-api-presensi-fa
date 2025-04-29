@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'), // password default
                 'presence' => fake()->numberBetween(0, 100), // misal presentase kehadiran
-                'role' => fake()->randomElement(['admin', 'member', 'hrd']),
+                'role' => fake()->randomElement(['admin', 'member']),
                 'status' => fake()->randomElement(['active', 'inactive']),
                 'image' => fake()->imageUrl(640, 480, 'people', true), // url gambar random
                 'honors_id' => fake()->numberBetween(1, 4), // random id dari 1-4
