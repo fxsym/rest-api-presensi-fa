@@ -10,7 +10,7 @@ class Presence extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['image', 'status', 'note', 'user_id'];
+    protected $fillable = ['image', 'lab', 'status', 'note', 'user_id'];
 
     /**
      * Get the user that owns the Presence

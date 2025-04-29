@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('presences', function (Blueprint $table) {
             $table->id();
             $table->text('image');
+            $table->string('lab', 12);
             $table->string('status', 20);
             $table->string('note')->nullable();
             $table->foreignId('user_id')->constrained(
