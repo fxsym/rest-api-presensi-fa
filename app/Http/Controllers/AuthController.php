@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -35,7 +36,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login Succesfully',
-            'token' => $token
+            'token' => $token,
+            'user' => new UserResource(User::with(['honor'])->findOrFail($user->id))
         ], 200);
     }
 
