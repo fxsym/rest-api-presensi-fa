@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -27,7 +30,42 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'nim' => 'required|string|max:10|unique:users,nim',
+            'class' => 'required|string',
+            'phone' => 'required|string|max:15|unique:users,phone',
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        // Simpan gambar jika ada
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('images', 'public');
+        }
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'nim' => $validated['nim'],
+            'class' => $validated['class'],
+            'phone' => $validated['phone'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'image' => $imagePath ?? null,
+            'presence' => 0,
+            'role' => 'member',
+            'status' => 'inactive',
+            'honors_id' => 11,
+        ]);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
     }
 
     /**
@@ -35,7 +73,16 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        // Ubah path gambar ke URL
+        $user->image = $user->image
+            ? asset('storage/' . $user->image)
+            : null;
+
+        return response()->json([
+            'user' => $user
+        ]);
     }
 
     /**
@@ -51,14 +98,71 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'nim' => 'sometimes|required|string|max:10|unique:users,nim,' . $user->id,
+            'class' => 'sometimes|required|string',
+            'phone' => 'sometimes|required|string|max:15|unique:users,phone,' . $user->id,
+            'username' => 'sometimes|required|string|max:255|unique:users,username,' . $user->id,
+            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'presence' => 'nullable|integer',
+            'role' => 'nullable|string',
+            'status' => 'nullable|string',
+            'honors_id' => 'nullable|exists:honors,id',
+        ]);
+
+        // Cek jika ada gambar baru yang dikirim
+        if ($request->hasFile('image')) {
+            // Simpan gambar baru
+            $imagePath = $request->file('image')->store('images', 'public');
+
+            // Hapus gambar lama jika ada
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
+            }
+
+            $user->image = $imagePath;
+        }
+
+        // Update data user
+        $user->update([
+            'name' => $validated['name'] ?? $user->name,
+            'nim' => $validated['nim'] ?? $user->nim,
+            'class' => $validated['class'] ?? $user->class,
+            'phone' => $validated['phone'] ?? $user->phone,
+            'username' => $validated['username'] ?? $user->username,
+            'email' => $validated['email'] ?? $user->email,
+            'password' => isset($validated['password']) ? Hash::make($validated['password']) : $user->password,
+            'presence' => $validated['presence'] ?? $user->presence,
+            'role' => $validated['role'] ?? $user->role,
+            'status' => $validated['status'] ?? $user->status,
+            'honors_id' => $validated['honors_id'] ?? $user->honors_id,
+            // Kolom image sudah di-set sebelumnya jika ada
+        ]);
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user
+        ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $user->presences()->delete();
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Data deleted successfully'
+        ], 200);
     }
 }

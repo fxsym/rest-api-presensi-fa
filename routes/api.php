@@ -3,10 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/user', [UserController::class, 'store']);
+Route::get('/user/{id}', [UserController::class, 'show']);
+Route::patch('/user/{id}', [UserController::class, 'update']);
+Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
 Route::prefix('auth')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);
