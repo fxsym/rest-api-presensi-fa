@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,10 +16,11 @@ class UserController extends Controller
      */
     public function index()
     {
+        Gate::authorize('viewAny', User::class);
         $users = User::with('honor')->get();
 
         return response()->json([
-            'message' => 'Presences retrieved successfully',
+            'message' => 'Users retrieved successfully',
             'users' => UserResource::collection($users),
         ], 200);
     }
@@ -80,6 +82,7 @@ class UserController extends Controller
     public function show(string $id)
     {
         $user = User::findOrFail($id);
+        Gate::authorize('view', $user);
 
         // Ubah path gambar ke URL
         $user->image = $user->image
@@ -105,6 +108,7 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $user = User::findOrFail($id);
+        Gate::authorize('update', $user);
 
         // Validasi input
         $validated = $request->validate([
@@ -164,6 +168,7 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
+        Gate::authorize('delete', $user);
         $user->presences()->delete();
         $user->delete();
 

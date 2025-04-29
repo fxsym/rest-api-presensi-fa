@@ -8,10 +8,10 @@ use App\Http\Controllers\UserController;
 
 // Route for user
 Route::post('/user', [UserController::class, 'store']);
-Route::get('/user', [UserController::class, 'index']);
-Route::get('/user/{id}', [UserController::class, 'show']);
-Route::patch('/user/{id}', [UserController::class, 'update']);
-Route::delete('/user/{id}', [UserController::class, 'destroy']);
+Route::get('/user', [UserController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/user/{id}', [UserController::class, 'show'])->middleware('auth:sanctum');
+Route::patch('/user/{id}', [UserController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('/user/{id}', [UserController::class, 'destroy'])->middleware('auth:sanctum');
 
 // Route for presence
 Route::apiResource('presence', PresenceController::class)->middleware('auth:sanctum');
