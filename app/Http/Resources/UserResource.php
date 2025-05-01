@@ -14,6 +14,9 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $imageUrl = $this->image
+            ? asset('storage/' . $this->image)
+            : null;
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -25,7 +28,7 @@ class UserResource extends JsonResource
             'presence' => $this->presence,
             'role' => $this->role,
             'status' => $this->status,
-            'image' => $this->image,
+            'image' => $imageUrl,
             'honor' => new HonorResource($this->whenLoaded('honor'))
         ];
     }

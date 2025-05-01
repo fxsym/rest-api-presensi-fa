@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +24,15 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Users retrieved successfully',
             'users' => UserResource::collection($users),
+        ], 200);
+    }
+
+    public function getUser()
+    {
+        $user = Auth::user();
+        return response()->json([
+            'message' => 'Get User Succesfully',
+            'user' => new UserResource(User::with(['honor'])->findOrFail($user->id))
         ], 200);
     }
 
@@ -112,18 +123,18 @@ class UserController extends Controller
 
         // Validasi input
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string',
             'nim' => 'sometimes|required|string|max:10|unique:users,nim,' . $user->id,
             'class' => 'sometimes|required|string',
             'phone' => 'sometimes|required|string|max:15|unique:users,phone,' . $user->id,
             'username' => 'sometimes|required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'presence' => 'nullable|integer',
-            'role' => 'nullable|string',
-            'status' => 'nullable|string',
-            'honors_id' => 'nullable|exists:honors,id',
+            'password' => 'sometimes|required|string|min:8',
+            'image' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+            'presence' => 'sometimes|required|integer',
+            'role' => 'sometimes|required|string',
+            'status' => 'sometimes|required|string',
+            'honors_id' => 'sometimes|required|exists:honors,id',
         ]);
 
         // Cek jika ada gambar baru yang dikirim
@@ -139,7 +150,7 @@ class UserController extends Controller
             $user->image = $imagePath;
         }
 
-        // Update data user
+        // Perbarui hanya field yang ada dalam request
         $user->update([
             'name' => $validated['name'] ?? $user->name,
             'nim' => $validated['nim'] ?? $user->nim,
@@ -152,14 +163,14 @@ class UserController extends Controller
             'role' => $validated['role'] ?? $user->role,
             'status' => $validated['status'] ?? $user->status,
             'honors_id' => $validated['honors_id'] ?? $user->honors_id,
-            // Kolom image sudah di-set sebelumnya jika ada
         ]);
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user
+            'user' => new UserResource(User::with(['honor'])->findOrFail($user->id))
         ], 200);
     }
+
 
 
     /**

@@ -18,11 +18,16 @@ class PresenceController extends Controller
     {
         // Gate::authorize('viewAny', Presence::class);
         $user = Auth::user();
-        
+
         if ($user->role === 'admin') {
-            $presences = Presence::with('user')->get(); // Admin
+            $presences = Presence::with('user')
+                ->orderBy('updated_at', 'desc') // urutkan dari yang terbaru
+                ->get();
         } elseif ($user->role === 'member') {
-            $presences = Presence::with('user')->where('user_id', $user->id)->get(); // Member
+            $presences = Presence::with('user')
+                ->where('user_id', $user->id)
+                ->orderBy('updated_at', 'desc') // urutkan dari yang terbaru
+                ->get();
         } else {
             return response()->json([
                 'message' => 'Upss... i dont know what you role it is..'
@@ -32,6 +37,25 @@ class PresenceController extends Controller
         return response()->json([
             'message' => 'Presences retrieved successfully',
             'presences' => PresenceResource::collection($presences),
+        ], 200);
+    }
+
+    public function updatePresenceStatus(Request $request, $id)
+    {
+        $presence = Presence::with('user')->findOrFail($id);
+        $user = Auth::user();
+        Gate::authorize('updateStatus', $presence);
+        $validated = $request->validate([
+            'status' => 'nullable|string|max:20',
+        ]);
+
+        $presence->update([
+            'status' => $validated['status'] ?? $presence->status,
+        ]);
+
+        return response()->json([
+            'message' => 'Presence Status updated successfully',
+            'presence' => new PresenceResource($presence),
         ], 200);
     }
 
@@ -48,12 +72,12 @@ class PresenceController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
         // Validasi input
         $validated = $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'lab' => 'required|string',
             'note' => 'nullable|string',
-            'user_id' => 'required|exists:users,id',
         ]);
 
         // Simpan gambar
@@ -65,7 +89,7 @@ class PresenceController extends Controller
             'lab' => $validated['lab'],
             'status' => 'pending',
             'note' => $validated['note'] ?? null,
-            'user_id' => $validated['user_id'],
+            'user_id' => $user->id,
         ]);
 
         return response()->json([
@@ -91,10 +115,27 @@ class PresenceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Presence $presence)
+    public function edit()
     {
-        //
+        // $presences = Presence::all();
+
+        // foreach ($presences as $presence) {
+        //     $randomId = rand(1, 500); // menghasilkan angka acak antara 1-900
+        //     $imageUrl = "https://picsum.photos/id/{$randomId}/700/400";
+
+        //     $presence->update([
+        //         'image' => $imageUrl,
+        //         'created_at' => now(),
+        //         'updated_at' => now()
+        //     ]);
+        // }
+
+        // return response()->json([
+        //     'message' => 'All presences updated successfully',
+        //     'presences' => $presences
+        // ]);
     }
+
 
     /**
      * Update the specified resource in storage.

@@ -40,6 +40,10 @@ class PresencePolicy
         return $user->role === 'admin' || $user->id === $presence->user_id;
     }
 
+    public function updateStatus(User $user, Presence $presence): bool
+    {
+        return $user->role === 'admin';
+    }
     /**
      * Determine whether the user can delete the model.
      */

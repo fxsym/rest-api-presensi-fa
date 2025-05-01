@@ -14,12 +14,22 @@ class PresenceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
+        $imageUrl = $this->image
+            ? asset('storage/' . $this->image)
+            : null;
         return [
             'id' => $this->id,
-            'image' => $this->image,
+            'image' => $imageUrl,
             'lab' => $this->lab,
             'status' => $this->status,
             'note' => $this->note,
+            'created_at' => $this->created_at
+                ? $this->created_at->format('Y-m-d H:i:s')
+                : null,
+            'updated_at' => $this->updated_at
+                ? $this->updated_at->format('Y-m-d H:i:s')
+                : null,
             'user' => new UserResource($this->whenLoaded('user'))
         ];
     }
