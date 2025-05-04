@@ -19,7 +19,7 @@ class UserController extends Controller
     public function index()
     {
         Gate::authorize('viewAny', User::class);
-        $users = User::with('honor')->get();
+        $users = User::with('honor', 'presences')->get();
 
         return response()->json([
             'message' => 'Users retrieved successfully',

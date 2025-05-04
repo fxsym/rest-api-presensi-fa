@@ -25,10 +25,10 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'username' => $this->username,
             'email' => $this->email,
-            'presence' => $this->presence,
             'role' => $this->role,
             'status' => $this->status,
             'image' => $imageUrl,
+            'presence_count' => $this->presences->where('status', 'validated')->count(),
             'honor' => new HonorResource($this->whenLoaded('honor'))
         ];
     }
