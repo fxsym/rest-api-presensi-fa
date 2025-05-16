@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\PresenceResource;
+// use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Cloudinary\Cloudinary;
 
 class PresenceController extends Controller
 {
@@ -26,12 +28,12 @@ class PresenceController extends Controller
                 ->orderBy('updated_at', 'desc') // urutkan dari yang terbaru
                 ->get();
 
-                if ($keyword) {
-                    $presences->where('title', 'like', '%' . $keyword . '%');
-                }
-                if ($lab) {
-                    $presences->where('title', 'like', '%' . $keyword . '%');
-                }
+            if ($keyword) {
+                $presences->where('title', 'like', '%' . $keyword . '%');
+            }
+            if ($lab) {
+                $presences->where('title', 'like', '%' . $keyword . '%');
+            }
         } elseif ($user->role === 'member') {
             $presences = Presence::with('user')
                 ->where('user_id', $user->id)
@@ -79,22 +81,65 @@ class PresenceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // Upload image menggunakan lokal
+    // public function store(Request $request)
+    // {
+    //     $user = Auth::user();
+    //     // Validasi input
+    //     $validated = $request->validate([
+    //         'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+    //         'lab' => 'required|string',
+    //         'note' => 'nullable|string',
+    //     ]);
+
+    //     // // Simpan gambar
+    //     // $imagePath = $request->file('image')->store('presences', 'public');
+
+    //     // Membuat data presensi baru
+    //     $presence = Presence::create([
+    //         'image' => imagePath, // ambil URL saja
+    //         'lab' => $validated['lab'],
+    //         'status' => 'pending',
+    //         'note' => $validated['note'] ?? null,
+    //         'user_id' => $user->id,
+    //     ]);
+
+    //     return response()->json([
+    //         'message' => 'Presence created successfully',
+    //         'presence' => new PresenceResource(Presence::with(['user'])->findOrFail($presence->id)),
+    //         'image' => imagePath, // ambil URL saja
+    //     ], 201);
+    // }
+
+    //Upload image ke cloudinary
     public function store(Request $request)
     {
+        $cloudinary = new Cloudinary(env('CLOUDINARY_URL'));
         $user = Auth::user();
-        // Validasi input
+
         $validated = $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'lab' => 'required|string',
             'note' => 'nullable|string',
         ]);
 
-        // Simpan gambar
-        $imagePath = $request->file('image')->store('presences', 'public');
+        $originalName = $request->file('image')->getClientOriginalName();
+        $fileName = pathinfo($originalName, PATHINFO_FILENAME);
+        $publicId = date('Ymd_His') . '_' . $fileName;
 
-        // Membuat data presensi baru
+        $result = $cloudinary->uploadApi()->upload(
+            $request->file('image')->getRealPath(),
+            [
+                'public_id' => $publicId,
+                'folder' => 'presences-images'
+            ]
+        );
+
+        // $result['secure_url'] sudah URL string
+        $uploadedUrl = $result['secure_url'];
+
         $presence = Presence::create([
-            'image' => $imagePath,
+            'image' => $uploadedUrl,
             'lab' => $validated['lab'],
             'status' => 'pending',
             'note' => $validated['note'] ?? null,
@@ -103,7 +148,8 @@ class PresenceController extends Controller
 
         return response()->json([
             'message' => 'Presence created successfully',
-            'presence' => new PresenceResource(Presence::with(['user'])->findOrFail($presence->id)),
+            'presence' => new PresenceResource(Presence::with('user')->findOrFail($presence->id)),
+            'image' => $uploadedUrl,
         ], 201);
     }
 

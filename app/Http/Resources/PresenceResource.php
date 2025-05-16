@@ -14,13 +14,9 @@ class PresenceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-
-        $imageUrl = $this->image
-            ? asset('storage/' . $this->image)
-            : null;
         return [
             'id' => $this->id,
-            'image' => $imageUrl,
+            'image' => $this->image,
             'lab' => $this->lab,
             'status' => $this->status,
             'note' => $this->note,
