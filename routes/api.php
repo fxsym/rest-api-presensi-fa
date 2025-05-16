@@ -6,6 +6,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\UserController;
 
+//Test Route
+Route::get('/test', function (Request $request) {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'API Test Berhasil!'
+    ]);
+});
+
 // Route for user
 Route::post('/user', [UserController::class, 'store']);
 Route::get('/users', [UserController::class, 'index'])->middleware('auth:sanctum');
