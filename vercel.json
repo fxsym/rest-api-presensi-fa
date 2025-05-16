@@ -20,12 +20,8 @@
             "dest": "/public/$1"
         },
         {
-            "src": "^/storage/images/(.*)$",
-            "dest": "/public/storage/images/$1"
-        },
-        {
-            "src": "^/storage/presences/(.*)$",
-            "dest": "/public/storage/presences/$1"
+            "src": "^/storage/(.*)$",
+            "dest": "/public/storage/$1"
         },
         {
             "src": "^/api/(.*)$",
@@ -50,12 +46,16 @@
         "LOG_CHANNEL": "stderr",
         "SESSION_DRIVER": "cookie",
         "DB_CONNECTION": "pgsql",
-        "DB_HOST": "ep-little-voice-a442wcwj-pooler.us-east-1.aws.neon.tech",
+        "DB_HOST": "ep-little-bush-a4qmr51g-pooler.us-east-1.aws.neon.tech",
         "DB_PORT": "5432",
         "DB_DATABASE": "neondb",
         "DB_USERNAME": "neondb_owner",
-        "DB_PASSWORD": "npg_Aeub3n8NCfag",
-        "DATABASE_URL": "postgres://neondb_owner:npg_Aeub3n8NCfag@ep-little-voice-a442wcwj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+        "DB_PASSWORD": "npg_9QFVezuGlo5A",
+        "DATABASE_URL": "postgres://neondb_owner:npg_9QFVezuGlo5A@ep-little-bush-a4qmr51g-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require",
+        "CLOUDINARY_KEY": "966477179245837",
+        "CLOUDINARY_SECRET": "XzCZh-xUgd7gBhz8xy-JtOqrfxY",
+        "CLOUDINARY_CLOUD_NAME": "djwbizyou",
+        "CLOUDINARY_URL": "cloudinary://966477179245837:XzCZh-xUgd7gBhz8xy-JtOqrfxY@djwbizyou"
     },
     "outputDirectory": "public"
 }

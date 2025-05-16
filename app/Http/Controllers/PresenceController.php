@@ -20,20 +20,11 @@ class PresenceController extends Controller
     {
         // Gate::authorize('viewAny', Presence::class);
         $user = Auth::user();
-        $keyword = $request->query('keyword');
-        $lab = $request->query('lab');
 
         if ($user->role === 'admin') {
             $presences = Presence::with('user')
                 ->orderBy('updated_at', 'desc') // urutkan dari yang terbaru
                 ->get();
-
-            if ($keyword) {
-                $presences->where('title', 'like', '%' . $keyword . '%');
-            }
-            if ($lab) {
-                $presences->where('title', 'like', '%' . $keyword . '%');
-            }
         } elseif ($user->role === 'member') {
             $presences = Presence::with('user')
                 ->where('user_id', $user->id)
